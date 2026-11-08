@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LANBeam 區網快傳</title>
+<meta property="og:title" content="LANBeam 區網快傳">
+<meta property="og:description" content="同一個 Wi-Fi，檔案直接到。Windows 電腦與手機互傳檔案、照片和訊息，不用帳號、不經過雲端。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#FBF6EE">
+<meta name="description" content="LANBeam 讓 Windows 電腦和手機在同一個網路裡互傳檔案、照片與訊息。電腦裝一次，手機掃 QR code 就能用，不用帳號，檔案不經過網際網路。">
+<link rel="icon" type="image/png" href="img/logo-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 版面概念:「光束」——奶油色紙面,深藍墨色的字,青色光束從電腦射到手機;只在開場放一個大動作,其他地方安靜 */
+:root{
+  --paper:#FBF6EE; --paper-2:#F3EADB; --card:#FFFDF9; --ink:#0E1325; --ink-2:#3B4256; --muted:#6C7080; --line:#E5DACA;
+  --beam:#13D8EA; --beam-ink:#04788A; --beam-glow:rgba(19,216,234,.38);
+  --btn:#0E1325; --btn-fg:#FDF6ED; --chip:#EFE5D4;
+  --app-bg:#F3F5F9; --app-card:#FFFFFF; --app-line:#E7EBF1; --app-text:#141A26; --app-muted:#6B7585; --app-accent:#2F6BFF; --app-soft:#E9EFFF;
+  --frame:#0E1325;
+  --display:"Jost","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --shadow:0 1px 2px rgba(14,19,37,.06),0 22px 50px -24px rgba(14,19,37,.35);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0B0F1B; --paper-2:#10162A; --card:#141B30; --ink:#F2EEE6; --ink-2:#C6CAD6; --muted:#8E94A7; --line:#242C45;
+  --beam:#2BE7F5; --beam-ink:#5FEFF8; --beam-glow:rgba(43,231,245,.32);
+  --btn:#F2EEE6; --btn-fg:#0E1325; --chip:#1B2340;
+  --app-bg:#0D1017; --app-card:#171C25; --app-line:#242B37; --app-text:#E9EDF4; --app-muted:#8F99AB; --app-accent:#5B8DFF; --app-soft:#1C2842;
+  --frame:#2A3350;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 26px 60px -26px rgba(0,0,0,.8);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#0B0F1B; --paper-2:#10162A; --card:#141B30; --ink:#F2EEE6; --ink-2:#C6CAD6; --muted:#8E94A7; --line:#242C45;
+  --beam:#2BE7F5; --beam-ink:#5FEFF8; --beam-glow:rgba(43,231,245,.32);
+  --btn:#F2EEE6; --btn-fg:#0E1325; --chip:#1B2340;
+  --app-bg:#0D1017; --app-card:#171C25; --app-line:#242B37; --app-text:#E9EDF4; --app-muted:#8F99AB; --app-accent:#5B8DFF; --app-soft:#1C2842;
+  --frame:#2A3350;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 26px 60px -26px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+/* 手機截圖:淺色主題給淺色版,深色主題給深色版 */
+.on-dark{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .on-dark{display:block}:root:not([data-theme="light"]) .on-light{display:none}}
+:root[data-theme="dark"] .on-dark{display:block}
+:root[data-theme="dark"] .on-light{display:none}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16.5px;line-height:1.75;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--beam-ink);outline-offset:3px;border-radius:6px}
+svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.wrap{max-width:1160px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;color:var(--ink)}
+h2{font-size:clamp(28px,4.2vw,44px);line-height:1.18;font-weight:900;letter-spacing:-.01em}
+h3{font-size:19px;line-height:1.4;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--beam-ink);font-weight:500}
+.lede{font-size:clamp(17px,1.6vw,19px);color:var(--ink-2);max-width:34em}
+kbd{font-family:var(--mono);font-size:.82em;padding:2px 7px;border-radius:7px;border:1px solid var(--line);border-bottom-width:2px;background:var(--card);white-space:nowrap}
+code{font-family:var(--mono);font-size:.86em;color:var(--beam-ink);overflow-wrap:anywhere}
+
+/* 按鈕 */
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 24px;border-radius:14px;background:var(--btn);color:var(--btn-fg);font-weight:700;font-size:16px;text-decoration:none;border:0;cursor:pointer;transition:transform .12s ease,box-shadow .2s ease;box-shadow:0 12px 26px -14px rgba(14,19,37,.6)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 16px 30px -14px rgba(14,19,37,.65)}
+.btn:active{transform:translateY(0)}
+.btn svg.i{width:20px;height:20px}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.ghost:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+
+/* 頂部 */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;min-height:66px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none}
+.brand img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 12px -5px rgba(14,19,37,.5)}
+.brand b{font-family:"Jost",sans-serif;font-size:21px;font-weight:700;letter-spacing:-.01em}
+.brand span{font-size:13px;color:var(--muted);font-weight:500}
+.nav{display:flex;gap:26px;margin-left:auto;font-size:15px;font-weight:500}
+.nav a{text-decoration:none;color:var(--ink-2)}
+.nav a:hover{color:var(--ink)}
+.top .btn{min-height:42px;padding:0 18px;font-size:14.5px;border-radius:12px}
+@media (max-width:760px){.nav{display:none}.top .btn{margin-left:auto}.brand span{display:none}}
+
+/* 開場 */
+.hero{padding-block:clamp(40px,7vw,88px) clamp(48px,7vw,96px);overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:clamp(32px,5vw,64px);align-items:center}
+.hero-copy{display:flex;flex-direction:column;gap:22px;min-width:0}
+.hero h1{font-size:clamp(40px,6.4vw,74px);line-height:1.08;font-weight:900;letter-spacing:-.025em}
+.hero h1 .beamword{position:relative;white-space:nowrap}
+.hero h1 .beamword::after{content:"";position:absolute;left:-4%;right:-6%;bottom:.1em;height:.16em;background:linear-gradient(100deg,transparent 0%,var(--beam) 18%,var(--beam) 70%,transparent 100%);transform:skewX(-24deg) rotate(-2deg);border-radius:4px;z-index:-1;opacity:.9}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13.5px;color:var(--muted)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.meta svg.i{width:16px;height:16px;color:var(--beam-ink)}
+@media (max-width:900px){.hero .wrap{grid-template-columns:minmax(0,1fr)}}
+
+/* 開場的畫面:電腦視窗 → 光束 → 手機 */
+.stage{position:relative;min-width:0;padding:4% 19% 10% 0}
+.pc{position:relative;background:var(--app-bg);border:1px solid var(--app-line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;color:var(--app-text);font-size:13px;line-height:1.45}
+.pc-bar{display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 4px 0 14px;background:var(--app-card);border-bottom:1px solid var(--app-line);color:var(--app-muted);font-size:12px}
+.pc-bar .wc{display:flex;gap:2px}
+.pc-bar .wc i{display:inline-flex;width:34px;height:26px;align-items:center;justify-content:center;font-style:normal;font-size:12px}
+.pc-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.pc-head{display:flex;align-items:center;gap:10px}
+.pc-head img{width:30px;height:30px;border-radius:8px}
+.pc-head b{font-family:"Jost",sans-serif;font-size:18px;font-weight:600}
+.pc-head .me{margin-left:4px;padding:2px 10px;border-radius:999px;background:var(--app-soft);color:var(--app-accent);font-size:12px;font-weight:600}
+.pc-head .acts{margin-left:auto;display:flex;gap:6px}
+.pc-head .acts span{padding:4px 10px;border-radius:8px;background:var(--app-card);border:1px solid var(--app-line);font-size:11.5px;color:var(--app-muted)}
+.pc-label{font-size:12px;font-weight:600;color:var(--app-muted)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--app-card);border:1px solid var(--app-line);min-width:0}
+.tile .av{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.tile b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile small{font-size:11px;color:var(--app-muted)}
+.tile.drop{border-color:var(--app-accent);box-shadow:0 0 0 3px var(--app-soft);background:linear-gradient(180deg,var(--app-soft),var(--app-card))}
+.tile .trust{position:absolute;top:10px;right:10px;padding:1px 7px;border-radius:999px;background:var(--app-soft);color:var(--app-accent);font-size:10.5px;font-weight:700}
+.xfer{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--app-card);border:1px solid var(--app-line)}
+.xfer .fi{width:30px;height:30px;border-radius:8px;background:#ffe6d5;color:#c2410c;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800}
+.xfer .tx{flex:1;min-width:0}
+.xfer .row{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.xfer .row span:last-child{color:var(--app-muted)}
+.xfer .bar{height:4px;border-radius:2px;background:var(--app-line);margin-top:6px;overflow:hidden}
+.xfer .bar i{display:block;height:100%;width:64%;background:var(--app-accent);border-radius:2px}
+.drag{position:absolute;left:30%;top:47%;display:flex;align-items:center;gap:7px;padding:6px 11px 6px 7px;border-radius:10px;background:var(--app-card);border:1px solid var(--app-line);box-shadow:0 14px 26px -12px rgba(14,19,37,.45);font-size:12px;font-weight:600;color:var(--app-text);transform:rotate(-4deg)}
+.drag .fi{width:22px;height:22px;border-radius:6px;background:#dbe8fe;color:#1d4ed8;font-size:7px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.drag svg{position:absolute;right:-12px;bottom:-14px;width:20px;height:20px}
+.phone{position:absolute;right:0;bottom:0;width:27%;min-width:112px;padding:6px;border-radius:30px;background:var(--frame);box-shadow:var(--shadow)}
+.phone img{border-radius:24px;width:100%;height:auto}
+.beam{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.beam .streak{fill:url(#beamFill);filter:drop-shadow(0 0 10px var(--beam-glow))}
+.beam .spark{fill:#fff;opacity:.9;animation:spark 3.2s cubic-bezier(.5,0,.3,1) infinite}
+@keyframes spark{0%{transform:translate(0,0);opacity:0}12%{opacity:.95}88%{opacity:.95}100%{transform:translate(330px,150px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.beam .spark{animation:none;opacity:0}}
+@media (max-width:520px){.pc-head .acts{display:none}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles .tile:nth-child(3){display:none}.stage{padding-right:27%}}
+
+/* 區塊 */
+section{scroll-margin-top:80px}
+.band{padding-block:clamp(64px,9vw,112px)}
+.band.alt{background:var(--paper-2)}
+.head{display:flex;flex-direction:column;gap:14px;max-width:760px;margin-bottom:clamp(36px,5vw,56px)}
+
+/* 三個步驟 */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,36px);counter-reset:s}
+.step{position:relative;display:flex;flex-direction:column;gap:12px;padding-top:58px;min-width:0}
+.step::before{counter-increment:s;content:counter(s);position:absolute;top:0;left:0;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Jost",sans-serif;font-weight:700;font-size:20px;background:var(--btn);color:var(--btn-fg)}
+.step:not(:last-child)::after{content:"";position:absolute;top:21px;left:58px;right:-12px;height:2px;background:linear-gradient(90deg,var(--beam),transparent)}
+.step p{color:var(--ink-2)}
+@media (max-width:820px){.steps{grid-template-columns:minmax(0,1fr)}.step:not(:last-child)::after{display:none}}
+
+/* 電腦功能 */
+.feats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
+.feat{display:flex;flex-direction:column;gap:10px;padding:28px 24px 30px 0;border-bottom:1px solid var(--line);min-width:0}
+.feat:not(:nth-child(4n)){border-right:1px solid var(--line)}
+.feat:not(:nth-child(4n+1)){padding-left:24px}
+.feat .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--chip);color:var(--ink)}
+.feat p{color:var(--ink-2);font-size:15.5px;line-height:1.7}
+@media (max-width:1000px){.feats{grid-template-columns:repeat(2,minmax(0,1fr))}.feat:not(:nth-child(4n)){border-right:0}.feat:not(:nth-child(4n+1)){padding-left:0}.feat:nth-child(odd){border-right:1px solid var(--line);padding-right:24px}.feat:nth-child(even){padding-left:24px}}
+@media (max-width:600px){.feats{grid-template-columns:minmax(0,1fr)}.feat:nth-child(odd){border-right:0;padding-right:0}.feat:nth-child(even){padding-left:0}}
+
+/* 手機 */
+.phones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,3vw,40px)}
+.pfig{margin:0;display:flex;flex-direction:column;gap:18px;min-width:0}
+.pfig .phone{position:relative;width:100%;min-width:0;max-width:330px;margin:0 auto}
+.pfig figcaption{display:flex;flex-direction:column;gap:6px;max-width:330px;margin:0 auto;width:100%}
+.pfig figcaption p{color:var(--ink-2);font-size:15.5px;line-height:1.7}
+@media (max-width:820px){
+  .phones{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:18px;margin:0 calc(-1 * max(20px,env(safe-area-inset-left,0px)));padding:0 max(20px,env(safe-area-inset-left,0px)) 10px;scrollbar-width:none}
+  .phones::-webkit-scrollbar{display:none}
+  .pfig{flex:0 0 74%;scroll-snap-align:center}
+}
+.more{display:flex;flex-wrap:wrap;gap:10px;margin-top:clamp(36px,5vw,52px)}
+.more span{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:14.5px;font-weight:500}
+.more svg.i{width:17px;height:17px;color:var(--beam-ink)}
+
+/* 隱私 */
+.privacy .wrap{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:clamp(36px,6vw,80px);align-items:start}
+.lan{position:relative;border-radius:22px;background:var(--card);border:1px solid var(--line);padding:28px;box-shadow:var(--shadow)}
+.lan .net{position:relative;border:1.5px dashed var(--beam-ink);border-radius:18px;padding:30px 18px 22px;display:flex;justify-content:space-around;align-items:center;gap:12px}
+.lan .net > small{position:absolute;top:-11px;left:18px;padding:0 8px;background:var(--card);font-family:var(--mono);font-size:12px;color:var(--beam-ink);letter-spacing:.06em}
+.dev{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:14px;font-weight:600;min-width:0}
+.dev .ic{width:58px;height:58px;border-radius:16px;background:var(--chip);display:flex;align-items:center;justify-content:center}
+.dev .ic svg.i{width:28px;height:28px}
+.link{flex:1;height:2px;background:linear-gradient(90deg,var(--beam),var(--beam));position:relative;min-width:24px;box-shadow:0 0 10px var(--beam-glow)}
+.cloud{display:flex;align-items:center;gap:12px;margin-top:22px;padding:14px 16px;border-radius:14px;background:var(--paper-2);color:var(--muted);font-size:14.5px}
+.cloud .x{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--card);flex:none;position:relative}
+.cloud .x::after{content:"";position:absolute;width:44px;height:2px;background:var(--muted);transform:rotate(-38deg)}
+.lan .addr{margin-top:18px;font-size:13.5px;color:var(--muted)}
+.plist{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.plist li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:16px;padding:20px 0;border-bottom:1px solid var(--line)}
+.plist .ic{width:44px;height:44px;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center}
+.plist p{color:var(--ink-2);font-size:15.5px;line-height:1.7;margin-top:2px}
+@media (max-width:900px){.privacy .wrap{grid-template-columns:minmax(0,1fr)}}
+
+/* 下載 */
+.get{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(24px,4vw,48px);align-items:center;padding:clamp(28px,4vw,48px);border-radius:28px;background:var(--ink);color:var(--paper);position:relative;overflow:hidden}
+.get::before{content:"";position:absolute;right:-8%;top:-30%;width:70%;height:12px;background:linear-gradient(90deg,transparent,var(--beam) 40%,var(--beam) 70%,transparent);transform:rotate(-24deg);filter:blur(1px);opacity:.85}
+.get > *{position:relative}
+.get img{width:clamp(96px,14vw,148px);height:auto;border-radius:30px;box-shadow:0 24px 50px -20px rgba(0,0,0,.6)}
+.get h2{color:var(--paper)}
+.get .info{display:flex;flex-direction:column;gap:16px;min-width:0}
+.get p{color:color-mix(in srgb,var(--paper) 78%,transparent)}
+.get .btn{background:var(--paper);color:var(--ink);box-shadow:none}
+.get .ver{font-family:var(--mono);font-size:13px;color:color-mix(in srgb,var(--paper) 65%,transparent)}
+.get .warn{font-size:13.5px;line-height:1.6;max-width:44em}
+.invite{margin-top:22px;display:grid;grid-template-columns:44px minmax(0,1fr);gap:16px;padding:22px 24px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+.invite .ic{width:44px;height:44px;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center}
+.invite p{color:var(--ink-2);font-size:15.5px}
+@media (max-width:640px){.get{grid-template-columns:minmax(0,1fr)}}
+
+/* 常見問題 */
+.faq{max-width:820px}
+.faq details{border-bottom:1px solid var(--line)}
+.faq details:first-of-type{border-top:1px solid var(--line)}
+.faq summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0;cursor:pointer;list-style:none;font-weight:700;font-size:17px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary svg.i{transition:transform .2s ease;color:var(--muted)}
+.faq details[open] summary svg.i{transform:rotate(45deg)}
+.faq details p{padding:0 0 22px;color:var(--ink-2);max-width:62ch}
+
+footer{padding-block:40px 48px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px}
+footer .brand img{width:28px;height:28px;border-radius:8px}
+footer .brand b{font-size:17px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-pc" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5"/></symbol>
+  <symbol id="i-drag" viewBox="0 0 24 24"><path d="M9 4h6l4 4v8"/><path d="M5 8h8l4 4v8H5z"/><path d="M13 8v4h4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m8.8 12 2.2 2.2 4.4-4.4"/></symbol>
+  <symbol id="i-resume" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/><path d="M10 9.5v5l4-2.5z"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h4"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 11.5a8 8 0 0 1-11.7 7.1L4 20l1.3-4.4A8 8 0 1 1 20.5 11.5z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.4 2.4 4.6-4.8"/></symbol>
+  <symbol id="i-invite" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 17v4h-4"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/><path d="m4 4 16 16"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M17 6l2.5 2.5M15 8l1.5 1.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="m6 7 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/><path d="m10 13 2-2 2 2M12 11v6"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="3"/><rect x="8.5" y="6.5" width="3" height="3" rx=".8"/><rect x="12.5" y="6.5" width="3" height="3" rx=".8"/><rect x="8.5" y="10.5" width="3" height="3" rx=".8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2.5 8.8a14 14 0 0 1 19 0M5.5 12.2a9.5 9.5 0 0 1 13 0M8.6 15.5a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z"/></symbol>
+  <symbol id="i-win" viewBox="0 0 24 24"><path d="M3 5.5 10.5 4.5v7H3zM12.5 4.2 21 3v8.5h-8.5zM3 12.5h7.5v7L3 18.5zM12.5 12.5H21V21l-8.5-1.2z"/></symbol>
+</defs></svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="LANBeam 回到最上面"><img src="img/logo-192.png" alt=""><b>LANBeam</b><span>區網快傳</span></a>
+    <nav class="nav" aria-label="頁面">
+      <a href="#how">怎麼用</a><a href="#pc">電腦</a><a href="#phone">手機</a><a href="#privacy">隱私</a><a href="#faq">常見問題</a>
+    </nav>
+    <a class="btn" href="#download">下載</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="eyebrow">Windows 電腦 × 手機 · 區域網路互傳</span>
+        <h1>同一個 Wi-Fi，<br><span class="beamword">檔案直接到</span>。</h1>
+        <p class="lede">LANBeam 讓電腦和電腦、電腦和手機在同一個網路裡互傳檔案、照片和訊息。電腦裝一次，手機掃 QR code 打開網頁就能用；不用帳號，檔案也不經過網際網路。</p>
+        <div class="cta">
+          <a class="btn" href="#download"><svg class="i"><use href="#i-down"/></svg>下載 Windows 版</a>
+          <a class="btn ghost" href="#phone">看手機怎麼用</a>
+        </div>
+        <div class="meta">
+          <span><svg class="i"><use href="#i-win"/></svg>Windows 10 / 11（64 位元）</span>
+          <span><svg class="i"><use href="#i-phone"/></svg>iPhone、Android 用瀏覽器就好</span>
+        </div>
+      </div>
+
+      <div class="stage" aria-hidden="true">
+        <div class="pc">
+          <div class="pc-bar"><span>LANBeam 區網快傳</span><span class="wc"><i>─</i><i>▢</i><i>✕</i></span></div>
+          <div class="pc-body">
+            <div class="pc-head"><img src="img/logo-192.png" alt=""><b>LANBeam</b><span class="me">書房電腦</span><span class="acts"><span>訊息</span><span>和手機互傳</span></span></div>
+            <div class="pc-label">同一個網路裡的電腦</div>
+            <div class="tiles">
+              <div class="tile drop"><span class="trust">信任</span><span class="av" style="background:#dbe8fe;color:#1d4ed8">客</span><b>客廳電腦</b><small>放開就傳送</small></div>
+              <div class="tile"><span class="av" style="background:#fbe8fe;color:#a21caf">小</span><b>小明的筆電</b><small>點一下選檔案</small></div>
+              <div class="tile"><span class="av" style="background:#dcfce7;color:#15803d">會</span><b>會議室電腦</b><small>點一下選檔案</small></div>
+            </div>
+            <div class="xfer"><span class="fi">ZIP</span><div class="tx"><div class="row"><span>旅遊照片.zip → 客廳電腦</span><span>64%</span></div><div class="bar"><i></i></div></div></div>
+          </div>
+          <div class="drag"><span class="fi">DOCX</span>出差行程.docx<svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z" fill="#fff" stroke="#0E1325" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        </div>
+        <svg class="beam" viewBox="0 0 600 470" preserveAspectRatio="none">
+          <defs><linearGradient id="beamFill" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--beam)" stop-opacity="0"/><stop offset=".35" stop-color="var(--beam)"/><stop offset="1" stop-color="var(--beam)" stop-opacity=".2"/></linearGradient></defs>
+          <polygon class="streak" points="150,250 520,402 528,410 140,262"/>
+          <circle class="spark" cx="168" cy="258" r="3.4"/>
+        </svg>
+        <div class="phone">
+          <img class="on-light" src="img/light-send.png" alt="" width="780" height="1688">
+          <img class="on-dark" src="img/dark-send.png" alt="" width="780" height="1688">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="how">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">三個步驟</span>
+        <h2>裝一次，之後只要拖過去</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>在電腦裝好 LANBeam</h3><p>執行安裝檔，裝好打開。同一個網路裡也開著 LANBeam 的電腦，會自動出現在畫面上，不用查 IP。</p></div>
+        <div class="step"><h3>手機掃 QR code</h3><p>在電腦按「和手機互傳」，用手機相機掃畫面上的 QR code，瀏覽器就會打開，網址像 <code>http://192.168.1.23:54323/…</code>，只在你家或公司的網路裡通。</p></div>
+        <div class="step"><h3>拖過去，或選照片</h3><p>電腦：把檔案拖到對方的電腦卡片上。手機：選好照片或影片就開始傳，不用再按一次。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="pc">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">電腦對電腦</span>
+        <h2>辦公室、家裡的電腦，互傳像丟到隔壁桌</h2>
+        <p class="lede">不用隨身碟、不用寄信給自己，也不用把檔案先上傳到雲端再下載。</p>
+      </div>
+      <div class="feats">
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-radar"/></svg></span><h3>自動找到對方</h3><p>開著 LANBeam 的電腦會排成卡片，點卡片選檔案，或直接把檔案拖上去。</p></div>
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-drag"/></svg></span><h3>整個資料夾也行</h3><p>檔案、資料夾一起傳；在檔案總管按右鍵「傳送到」也找得到 LANBeam。</p></div>
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-shield"/></svg></span><h3>信任的電腦免確認</h3><p>第一次收到時會先問你；勾了「信任」，之後那台電腦傳來的就直接收下。</p></div>
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-resume"/></svg></span><h3>斷線接著傳</h3><p>大檔案傳到一半網路斷了，重新連上會從斷掉的地方繼續，不用從頭來。</p></div>
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-clip"/></svg></span><h3>剪貼簿互通</h3><p>開啟後，在另一台電腦按 <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>，就貼上這台複製的文字、圖片或檔案。</p></div>
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-chat"/></svg></span><h3>順便傳個訊息</h3><p>電腦之間可以直接聊幾句，傳過的檔案也會出現在對話裡，有縮圖。</p></div>
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-check"/></svg></span><h3>連不上自己檢查</h3><p>找不到對方時，LANBeam 會檢查防火牆與網路設定，告訴你哪裡卡住，能修的一鍵修好。</p></div>
+        <div class="feat"><span class="ic"><svg class="i"><use href="#i-invite"/></svg></span><h3>邀請另一台電腦</h3><p>同事還沒裝？按「邀請」，對方打開網址就能直接從你的電腦下載安裝檔。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="phone">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">手機 · 免裝 App</span>
+        <h2>手機掃一下，就是一個 App</h2>
+        <p class="lede">iPhone、Android 都用瀏覽器打開；加到主畫面之後，點圖示就能全螢幕使用。</p>
+      </div>
+      <div class="phones">
+        <figure class="pfig">
+          <div class="phone"><img class="on-light" src="img/light-send.png" alt="手機選了三張照片，已經全部傳到客廳電腦" width="780" height="1688"><img class="on-dark" src="img/dark-send.png" alt="手機選了三張照片，已經全部傳到客廳電腦" width="780" height="1688"></div>
+          <figcaption><h3>選照片就傳</h3><p>選好照片、影片馬上開始傳，進度一目了然。也可以改傳給別支手機。</p></figcaption>
+        </figure>
+        <figure class="pfig">
+          <div class="phone"><img class="on-light" src="img/light-chat.png" alt="和小明的手機私訊，對方傳來一張白板照片" width="780" height="1688"><img class="on-dark" src="img/dark-chat.png" alt="和小明的手機私訊，對方傳來一張白板照片" width="780" height="1688"></div>
+          <figcaption><h3>手機和手機也能聊</h3><p>跟電腦傳訊息，也能和其他手機私訊、互傳照片，只有你們兩個看得到。</p></figcaption>
+        </figure>
+        <figure class="pfig">
+          <div class="phone"><img class="on-light" src="img/light-files.png" alt="在手機上瀏覽電腦的出遊照片資料夾，每張都有縮圖" width="780" height="1688"><img class="on-dark" src="img/dark-files.png" alt="在手機上瀏覽電腦的出遊照片資料夾，每張都有縮圖" width="780" height="1688"></div>
+          <figcaption><h3>翻電腦的資料夾</h3><p>有縮圖、能搜尋，照片和 PDF 點了直接看；勾幾個一起打包下載。</p></figcaption>
+        </figure>
+      </div>
+      <div class="more">
+        <span><svg class="i"><use href="#i-down"/></svg>下載電腦給你的檔案</span>
+        <span><svg class="i"><use href="#i-folder"/></svg>上傳到電腦的資料夾</span>
+        <span><svg class="i"><use href="#i-home"/></svg>加到主畫面</span>
+        <span><svg class="i"><use href="#i-moon"/></svg>深色模式</span>
+        <span><svg class="i"><use href="#i-resume"/></svg>大檔斷線接著傳</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band privacy" id="privacy">
+    <div class="wrap">
+      <div>
+        <div class="head" style="margin-bottom:28px">
+          <span class="eyebrow">隱私</span>
+          <h2>檔案只在你的網路裡走</h2>
+          <p class="lede">LANBeam 直接在你的電腦和手機之間傳送，中間沒有伺服器，也沒有雲端。</p>
+        </div>
+        <div class="lan" aria-label="手機和電腦在同一個區域網路裡直接互傳，不經過雲端">
+          <div class="net">
+            <small>你的 Wi-Fi／公司網路</small>
+            <div class="dev"><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span>手機</div>
+            <span class="link"></span>
+            <div class="dev"><span class="ic"><svg class="i"><use href="#i-pc"/></svg></span>電腦</div>
+            <span class="link"></span>
+            <div class="dev"><span class="ic"><svg class="i"><use href="#i-pc"/></svg></span>電腦</div>
+          </div>
+          <div class="cloud"><span class="x"><svg class="i"><use href="#i-cloud"/></svg></span>不上傳到雲端，不需要網際網路</div>
+        </div>
+      </div>
+      <ul class="plist">
+        <li><span class="ic"><svg class="i"><use href="#i-user"/></svg></span><div><h3>不用註冊帳號</h3><p>沒有帳號、沒有登入，也不會收集你的檔案。</p></div></li>
+        <li><span class="ic"><svg class="i"><use href="#i-key"/></svg></span><div><h3>配對碼擋住不認識的人</h3><p>設定配對碼後，手機要先輸入才能用；不認識的電腦傳檔來，也會先問過你。</p></div></li>
+        <li><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><div><h3>預設加密</h3><p>電腦之間的傳輸預設就是加密的；手機網頁也能改用 https。</p></div></li>
+        <li><span class="ic"><svg class="i"><use href="#i-trash"/></svg></span><div><h3>刪錯了救得回來</h3><p>在手機上刪除電腦裡的檔案，會移到電腦的資源回收筒。手機互傳的檔案，電腦保留 7 天後自動清掉。</p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="band alt" id="download">
+    <div class="wrap">
+      <div class="get">
+        <img src="img/logo-1024.png" alt="LANBeam 圖示" width="1024" height="1024">
+        <div class="info">
+          <h2>下載 LANBeam</h2>
+          <p>Windows 10 / 11（64 位元）。執行安裝檔就好，不用另外裝其他東西；手機不用裝任何 App。</p>
+          <div class="cta"><a class="btn" href="https://github.com/Yangjianzin/LANBeam/releases/latest/download/LANBeam-Setup.exe" data-download><svg class="i"><use href="#i-down"/></svg>下載安裝檔</a></div>
+          <span class="ver">版本 2.13.0 · LANBeam-Setup-2.13.0.exe</span>
+          <p class="warn">下載後執行時如果出現「Windows 已保護您的電腦」，按「其他資訊」→「仍要執行」就能安裝。</p>
+        </div>
+      </div>
+      <div class="invite">
+        <span class="ic"><svg class="i"><use href="#i-invite"/></svg></span>
+        <div><h3>身邊已經有人在用？</h3><p>請對方在 LANBeam 按「邀請另一台電腦」，你用電腦打開畫面上的網址（或掃 QR code），就能直接從他的電腦下載安裝檔。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="faq">
+    <div class="wrap faq">
+      <div class="head"><span class="eyebrow">常見問題</span><h2>開始之前</h2></div>
+      <details><summary>一定要連網路嗎？<svg class="i"><use href="#i-plus"/></svg></summary><p>電腦和手機要在同一個區域網路裡，例如同一個 Wi-Fi 或公司網路；不需要連上網際網路，斷網也能傳。</p></details>
+      <details><summary>手機要裝 App 嗎？<svg class="i"><use href="#i-plus"/></svg></summary><p>不用。掃 QR code 會用瀏覽器打開；想像 App 一樣從主畫面打開，在瀏覽器選「加到主畫面」就好。</p></details>
+      <details><summary>可以傳很大的檔案嗎？<svg class="i"><use href="#i-plus"/></svg></summary><p>可以。大檔案會分段傳送，Wi-Fi 斷了也會從斷掉的地方接著傳，不用重來。</p></details>
+      <details><summary>別人會不會傳東西到我的電腦？<svg class="i"><use href="#i-plus"/></svg></summary><p>不認識的電腦要傳檔時，LANBeam 會先問你要不要收；手機要用之前，也可以要求先輸入配對碼。只有你勾過「信任」的電腦能直接傳進來。</p></details>
+      <details><summary>收到的檔案放在哪裡？<svg class="i"><use href="#i-plus"/></svg></summary><p>放在電腦的「接收資料夾」，預設是「下載」裡的 LANBeam 資料夾，可以在設定裡改。</p></details>
+      <details><summary>Mac 或平板可以用嗎？<svg class="i"><use href="#i-plus"/></svg></summary><p>電腦版目前只有 Windows。Mac、平板和其他裝置可以像手機一樣，用瀏覽器打開電腦上顯示的網址來傳檔。</p></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="img/logo-192.png" alt=""><b>LANBeam</b></a>
+    <span>區網快傳 · 由 Sam.Yang 製作 · 版本 2.13.0</span>
+  </div>
+</footer>
+
+<script>
+/* 放在 GitHub Pages（帳號.github.io/倉庫）時，下載按鈕自動指到同一個倉庫最新版的安裝檔 */
+(function(){
+  var m = location.hostname.match(/^([^.]+)\.github\.io$/i);
+  if (!m) return;
+  var seg = location.pathname.split('/').filter(Boolean)[0];
+  var repo = seg && !/\.html?$/i.test(seg) ? seg : location.hostname;
+  var url = 'https://github.com/' + m[1] + '/' + repo + '/releases/latest/download/LANBeam-Setup.exe';
+  Array.prototype.forEach.call(document.querySelectorAll('a[data-download]'), function(a){ a.href = url; });
+})();
+</script></body>
+</html>
